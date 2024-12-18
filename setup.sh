@@ -18,7 +18,7 @@ printf "\e[42mSUDO успешно установлен.\e[0m\n"
 
 # Клонирование репозитория
 printf "\e[42mКлонирование репозитория dwg-ui...\e[0m\n"
-git clone https://github.com/dignezzz/dwg-ui.git temp
+git clone https://github.com/VlaVer98/dwg-ui.git temp
 
 if [ ! -d "dwg-ui" ]; then
   mkdir dwg-ui
