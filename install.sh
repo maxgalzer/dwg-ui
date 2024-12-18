@@ -191,8 +191,29 @@ echo -e "Введите хэш пароль для веб-интерфейса (
 read -p WEBPASSWORD || WEBPASSWORD="$2a$12$2fPQgutIoKN.y7gwX/fYHOvVskb5PyWEi4Oy4FexR1hrgdLFxH0Um"
 echo ""
 
-sed -i -E "s/- PASSWORD=.*/- PASSWORD=$WEBPASSWORD/g" docker-compose.yml
+# Запрос пароля у пользователя
+echo -e "Введите пароль для веб-интерфейса (если пропустить, будет задан пароль 'openode'): "
+read -p "WEBPASSWORD: " USER_PASSWORD
 
+# Установка пароля по умолчанию, если пользователь пропустил ввод
+if [ -z "$USER_PASSWORD" ]; then
+  USER_PASSWORD="openode"
+fi
+
+# Генерация хэша пароля с помощью Docker
+WEBPASSWORD=$(docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw "$USER_PASSWORD" | tr -d '\r')
+
+# Проверяем, успешно ли сгенерирован хэш
+if [ -z "$WEBPASSWORD" ]; then
+  echo "Ошибка: не удалось сгенерировать хэш пароля."
+  exit 1
+fi
+
+# Экранирование специальных символов в хэше для использования в sed
+ESCAPED_PASSWORD=$(printf '%s\n' "$WEBPASSWORD" | sed -e 's/[\/&]/\\&/g')
+
+# Обновление файла docker-compose.yml
+sed -i -E "s/- PASSWORD_HASH=.*/- $ESCAPED_PASSWORD/g" docker-compose.yml
 
 # Даем пользователю информацию по установке
 # Читаем текущие значения из файла docker-compose.yml
