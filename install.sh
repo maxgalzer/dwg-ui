@@ -181,27 +181,21 @@ echo ""
 
 # if [[ "$WEBPASSWORD" =~ ^[[:alnum:]]+$ ]]; then
 #    # Записываем в файл новый пароль в кодировке UTF-8
-#    sed -i -E "s/- PASSWORD=.*/- PASSWORD=$WEBPASSWORD/g" docker-compose.yml
+#    sed -i -E "s/- PASSWORD_HASH=.*/- PASSWORD_HASH=$WEBPASSWORD/g" docker-compose.yml
 #    break
 #  else
 #    echo "Пароль должен состоять только из английских букв и цифр, без пробелов и специальных символов."
 #  fi
 #done
-echo -e "Введите пароль для веб-интерфейса (если пропустить, по умолчанию будет задан openode) "
-read -p "Требования к паролю: Пароль может содержать только цифры и английские символы: " WEBPASSWORD || WEBPASSWORD="openode"
+echo -e "Введите хэш пароль для веб-интерфейса (если пропустить, по умолчанию будет задан openode) "
+read -p WEBPASSWORD || WEBPASSWORD="$2a$12$2fPQgutIoKN.y7gwX/fYHOvVskb5PyWEi4Oy4FexR1hrgdLFxH0Um"
 echo ""
 
-if [[ "$WEBPASSWORD" =~ ^[[:alnum:]]+$ ]]; then
-  # Записываем в файл новый пароль в кодировке UTF-8
-  sed -i -E "s/- PASSWORD=.*/- PASSWORD=$WEBPASSWORD/g" docker-compose.yml
-else
-  echo "Пароль должен состоять только из английских букв и цифр, без пробелов и специальных символов."
-fi
+sed -i -E "s/- PASSWORD=.*/- PASSWORD=$WEBPASSWORD/g" docker-compose.yml
 
 
 # Даем пользователю информацию по установке
 # Читаем текущие значения из файла docker-compose.yml
-CURRENT_PASSWORD=$(grep PASSWORD docker-compose.yml | cut -d= -f2)
 CURRENT_WG_HOST=$(grep WG_HOST docker-compose.yml | cut -d= -f2)
 CURRENT_WG_DEFAULT_ADDRESS=$(grep WG_DEFAULT_ADDRESS docker-compose.yml | cut -d= -f2)
 CURRENT_WG_DEFAULT_DNS=$(grep WG_DEFAULT_DNS docker-compose.yml | cut -d= -f2)
@@ -211,7 +205,6 @@ CURRENT_WG_DEFAULT_DNS=$(grep WG_DEFAULT_DNS docker-compose.yml | cut -d= -f2)
 echo ""
 echo -e "${BLUE}Текущие значения:${NC}"
 echo ""
-echo -e "Пароль от веб-интерфейса: ${BLUE}$CURRENT_PASSWORD${NC}"
 echo -e "IP адрес сервера: ${BLUE}$CURRENT_WG_HOST${NC}"
 echo -e "Маска пользовательских IP: ${BLUE}$CURRENT_WG_DEFAULT_ADDRESS${NC}"
 echo -e "Адрес входа в веб-интерфейс WireGuard после установки: ${YELLOW}http://$CURRENT_WG_HOST:51821${NC}"
