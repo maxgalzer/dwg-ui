@@ -200,7 +200,7 @@ if [ -z "$USER_PASSWORD" ]; then
 fi
 
 # Генерация хэша пароля с помощью Docker
-RAW_PASSWORD_HASH=$(docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw "$USER_PASSWORD" | tr -d '\r')
+RAW_PASSWORD_HASH=$(docker run --rm ghcr.io/wg-easy/wg-easy wgpw "$USER_PASSWORD" | tr -d '\r')
 
 # Удаляем одинарные кавычки из результата
 WEBPASSWORD=$(echo "$RAW_PASSWORD_HASH" | sed "s/'//g")
@@ -211,11 +211,20 @@ if [ -z "$WEBPASSWORD" ]; then
   exit 1
 fi
 
-# Экранирование специальных символов в хэше для использования в sed
-ESCAPED_PASSWORD=$(printf '%s\n' "$WEBPASSWORD" | sed -e 's/[\/&]/\\&/g')
+# Замена символа '$' на '$$' для использования в docker-compose
+ESCAPED_PASSWORD=$(printf '%s' "$WEBPASSWORD" | sed 's/\$/\$\$/g')
 
-# Обновление файла docker-compose.yml
-sed -i -E "s/- PASSWORD_HASH=.*/- $ESCAPED_PASSWORD/g" docker-compose.yml
+# Экранирование символов для корректной работы с sed
+ESCAPED_PASSWORD=$(printf '%s' "$ESCAPED_PASSWORD" | sed -e 's/[\/&]/\\&/g')
+
+# Обновление строки в docker-compose.yml
+if grep -q "PASSWORD_HASH" docker-compose.yml; then
+  sed -i -E "s/- PASSWORD_HASH=.*/- $ESCAPED_PASSWORD/g" docker-compose.yml
+  echo "Пароль успешно обновлён в файле docker-compose.yml"
+else
+  echo "Ошибка: ключ PASSWORD_HASH не найден в docker-compose.yml"
+  exit 1
+fi
 
 # Даем пользователю информацию по установке
 # Читаем текущие значения из файла docker-compose.yml
