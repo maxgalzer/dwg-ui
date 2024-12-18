@@ -302,7 +302,7 @@ echo -e "${GREEN}Логин: $username${NC}"
 echo -e "${GREEN}Пароль: $password${NC}"
 
 # Запускаем docker-compose
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo -e "Адрес входа в веб-интерфейс WireGuard после установки: ${BLUE}http://$CURRENT_WG_HOST:51821${NC}"
