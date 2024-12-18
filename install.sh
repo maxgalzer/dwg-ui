@@ -187,13 +187,9 @@ echo ""
 #    echo "Пароль должен состоять только из английских букв и цифр, без пробелов и специальных символов."
 #  fi
 #done
-echo -e "Введите хэш пароль для веб-интерфейса (если пропустить, по умолчанию будет задан openode) "
-read -p WEBPASSWORD || WEBPASSWORD="$2a$12$2fPQgutIoKN.y7gwX/fYHOvVskb5PyWEi4Oy4FexR1hrgdLFxH0Um"
-echo ""
-
 # Запрос пароля у пользователя
 echo -e "Введите пароль для веб-интерфейса (если пропустить, будет задан пароль 'openode'): "
-read -p "WEBPASSWORD: " USER_PASSWORD
+read -p "Пароль: " USER_PASSWORD
 
 # Установка пароля по умолчанию, если пользователь пропустил ввод
 if [ -z "$USER_PASSWORD" ]; then
@@ -201,9 +197,12 @@ if [ -z "$USER_PASSWORD" ]; then
 fi
 
 # Генерация хэша пароля с помощью Docker
-WEBPASSWORD=$(docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw "$USER_PASSWORD" | tr -d '\r')
+RAW_PASSWORD_HASH=$(docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw "$USER_PASSWORD" | tr -d '\r')
 
-# Проверяем, успешно ли сгенерирован хэш
+# Удаляем одинарные кавычки из результата
+WEBPASSWORD=$(echo "$RAW_PASSWORD_HASH" | sed "s/'//g")
+
+# Проверяем, успешно ли обработан хэш
 if [ -z "$WEBPASSWORD" ]; then
   echo "Ошибка: не удалось сгенерировать хэш пароля."
   exit 1
