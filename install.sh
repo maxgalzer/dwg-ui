@@ -226,6 +226,24 @@ else
   exit 1
 fi
 
+# Запрос по смене маски подсети
+echo -e "Введите подсеть в формате 10.10.10.x (если пропустить, будет задана 10.10.10.x): "
+read -p "Подсеть: " WG_DEFAULT_ADDRESS
+
+# Установка подсети по умолчанию, если пользователь пропустил ввод
+if [ -z "$WG_DEFAULT_ADDRESS" ]; then
+  WG_DEFAULT_ADDRESS="10.10.10.x"
+fi
+
+# Обновление строки в docker-compose.yml
+if grep -q "WG_DEFAULT_ADDRESS" docker-compose.yml; then
+  sed -i -E "s/- WG_DEFAULT_ADDRESS=.*/- $WG_DEFAULT_ADDRESS/g" docker-compose.yml
+  echo "Маска подсети успешно обновлена в файле docker-compose.yml"
+else
+  echo "Ошибка: ключ WG_DEFAULT_ADDRESS не найден в docker-compose.yml"
+  exit 1
+fi
+
 # Даем пользователю информацию по установке
 # Читаем текущие значения из файла docker-compose.yml
 CURRENT_WG_HOST=$(grep WG_HOST docker-compose.yml | cut -d= -f2)
